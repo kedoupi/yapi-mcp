@@ -8,23 +8,29 @@ This is a YApi MCP (Model Context Protocol) server project that enables AI tools
 
 ## Development Commands
 
-Since this is a new project, the following commands will be added as the project develops:
-
 ```bash
-# Development setup (to be implemented)
+# Development setup
 npm install
 
-# Build (to be implemented)
+# Build
 npm run build
 
-# Run in development mode (to be implemented)
+# Run in development mode
 npm run dev
 
-# Testing (to be implemented)
-npm test
+# Testing
+npm test                    # Run all tests
+npm run test:watch         # Run tests in watch mode
+npm run test:coverage      # Run tests with coverage report
+npm run test:unit          # Run unit tests only
+npm run test:integration   # Run integration tests only
 
-# Linting (to be implemented)
+# Linting
 npm run lint
+npm run lint:fix
+
+# Cleanup
+npm run clean
 ```
 
 ## Architecture Guidelines
@@ -66,3 +72,24 @@ This project aims to optimize existing YApi MCP solutions by focusing on:
 - Simplified configuration
 - Enhanced stability and reliability
 - Improved user experience for common operations
+
+## Testing
+
+### Test Structure
+- **Unit Tests**: `tests/unit/` - Test individual components in isolation
+- **Integration Tests**: `tests/integration/` - Test complete workflows
+- **Coverage Goals**: 80% statements, 75% branches, 80% functions
+
+### Key Test Areas
+- YApi client HTTP interactions (with nock mocking)
+- Cache behavior and TTL expiration
+- Configuration validation and error handling
+- MCP server initialization and tool registration
+- End-to-end API workflows
+
+### Before Committing
+Always run the test suite and ensure coverage meets standards:
+```bash
+npm run test:coverage
+npm run lint
+```
