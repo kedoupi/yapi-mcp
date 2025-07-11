@@ -4,8 +4,8 @@
 
 ![YApi MCP Enhanced](https://img.shields.io/badge/YApi-MCP-blue?style=for-the-badge&logo=api&logoColor=white)
 
-[![npm version](https://img.shields.io/npm/v/yapi-mcp-enhanced.svg?style=flat-square)](https://www.npmjs.com/package/yapi-mcp-enhanced)
-[![Node.js Version](https://img.shields.io/node/v/yapi-mcp-enhanced.svg?style=flat-square)](https://nodejs.org/)
+[![npm version](https://img.shields.io/npm/v/@kedoupi/yapi-mcp.svg?style=flat-square)](https://www.npmjs.com/package/@kedoupi/yapi-mcp)
+[![Node.js Version](https://img.shields.io/node/v/@kedoupi/yapi-mcp.svg?style=flat-square)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg?style=flat-square)](./coverage)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/kedoupi/yapi-mcp/ci.yml?style=flat-square)](https://github.com/kedoupi/yapi-mcp/actions)
@@ -51,10 +51,10 @@
 
 ```bash
 # Install globally
-npm install -g yapi-mcp-enhanced
+npm install -g @kedoupi/yapi-mcp
 
 # Test your connection
-npx yapi-mcp-enhanced test-connection
+npx @kedoupi/yapi-mcp test-connection
 ```
 
 ### 🔧 Installation
@@ -63,7 +63,7 @@ npx yapi-mcp-enhanced test-connection
 <summary>📦 NPM Installation</summary>
 
 ```bash
-npm install -g yapi-mcp-enhanced
+npm install -g @kedoupi/yapi-mcp
 ```
 </details>
 
@@ -71,7 +71,7 @@ npm install -g yapi-mcp-enhanced
 <summary>🧶 Yarn Installation</summary>
 
 ```bash
-yarn global add yapi-mcp-enhanced
+yarn global add @kedoupi/yapi-mcp
 ```
 </details>
 
@@ -106,7 +106,7 @@ CACHE_TTL=300
 
 3. **Test connection:**
 ```bash
-npx yapi-mcp-enhanced test-connection
+npx @kedoupi/yapi-mcp test-connection
 ```
 
 ## 💻 Platform Integration
@@ -121,9 +121,9 @@ Add to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "yapi-mcp-enhanced": {
+    "@kedoupi/yapi-mcp": {
       "command": "npx",
-      "args": ["yapi-mcp-enhanced"],
+      "args": ["@kedoupi/yapi-mcp"],
       "env": {
         "YAPI_BASE_URL": "https://your-yapi-domain.com",
         "YAPI_PROJECT_TOKEN": "your-project-token",
@@ -152,9 +152,9 @@ Add to your `claude_desktop_config.json`:
 
 ```json
 {
-  "name": "yapi-mcp-enhanced", 
+  "name": "@kedoupi/yapi-mcp", 
   "command": "npx",
-  "args": ["yapi-mcp-enhanced"],
+  "args": ["@kedoupi/yapi-mcp"],
   "env": {
     "YAPI_BASE_URL": "https://your-yapi-domain.com",
     "YAPI_PROJECT_TOKEN": "your-project-token"
@@ -175,9 +175,9 @@ Add to `.continue/config.json`:
 {
   "mcpServers": [
     {
-      "name": "yapi-mcp-enhanced",
+      "name": "@kedoupi/yapi-mcp",
       "command": "npx", 
-      "args": ["yapi-mcp-enhanced"],
+      "args": ["@kedoupi/yapi-mcp"],
       "env": {
         "YAPI_BASE_URL": "https://your-yapi-domain.com",
         "YAPI_PROJECT_TOKEN": "your-project-token"
@@ -201,7 +201,7 @@ Add MCP server configuration in Codeium settings:
   "mcp_servers": {
     "yapi": {
       "command": "npx",
-      "args": ["yapi-mcp-enhanced"], 
+      "args": ["@kedoupi/yapi-mcp"], 
       "env": {
         "YAPI_BASE_URL": "https://your-yapi-domain.com",
         "YAPI_PROJECT_TOKEN": "your-project-token"

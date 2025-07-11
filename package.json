@@ -1,5 +1,5 @@
 {
-  "name": "yapi-mcp-enhanced",
+  "name": "@kedoupi/yapi-mcp",
   "version": "1.0.0",
   "description": "Enhanced YApi MCP server for better AI integration and user experience",
   "main": "dist/index.js",

@@ -4,6 +4,7 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { YApiClient } from './services/yapi-client.js';
 import { Logger } from './utils/logger.js';
@@ -370,7 +371,7 @@ export class YApiMcpServer {
   }
 
   async run() {
-    const transport = process.stdin;
+    const transport = new StdioServerTransport();
     await this.server.connect(transport);
     this.logger.info('YApi MCP Server running on stdio');
   }

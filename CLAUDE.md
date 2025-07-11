@@ -24,7 +24,7 @@ npm run clean                # Clean build artifacts
 
 # Utility commands
 node dist/cli.js test-connection  # Test YApi connectivity (after build)
-npx yapi-mcp-enhanced test-connection  # Test if installed globally
+npx @kedoupi/yapi-mcp test-connection  # Test if installed globally
 ```
 
 ## Architecture Overview
@@ -112,7 +112,7 @@ For AI tools (Claude Desktop, Cursor, etc.), the server is configured as:
 ```json
 {
   "command": "npx",
-  "args": ["yapi-mcp-enhanced"],
+  "args": ["@kedoupi/yapi-mcp"],
   "env": {
     "YAPI_BASE_URL": "https://your-yapi-domain.com",
     "YAPI_PROJECT_TOKEN": "your-project-token"

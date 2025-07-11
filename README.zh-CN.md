@@ -4,8 +4,8 @@
 
 ![Logo](https://img.shields.io/badge/YApi-MCP-blue?style=for-the-badge&logo=api&logoColor=white)
 
-[![npm version](https://img.shields.io/npm/v/yapi-mcp-enhanced.svg?style=flat-square)](https://www.npmjs.com/package/yapi-mcp-enhanced)
-[![Node.js Version](https://img.shields.io/node/v/yapi-mcp-enhanced.svg?style=flat-square)](https://nodejs.org/)
+[![npm version](https://img.shields.io/npm/v/@kedoupi/yapi-mcp.svg?style=flat-square)](https://www.npmjs.com/package/@kedoupi/yapi-mcp)
+[![Node.js Version](https://img.shields.io/node/v/@kedoupi/yapi-mcp.svg?style=flat-square)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg?style=flat-square)](./coverage)
 [![GitHub Issues](https://img.shields.io/github/issues/kedoupi/yapi-mcp.svg?style=flat-square)](https://github.com/kedoupi/yapi-mcp/issues)
@@ -41,10 +41,10 @@
 
 ```bash
 # 使用 npm
-npm install -g yapi-mcp-enhanced
+npm install -g @kedoupi/yapi-mcp
 
 # 使用 yarn
-yarn global add yapi-mcp-enhanced
+yarn global add @kedoupi/yapi-mcp
 
 # 或者克隆源码
 git clone https://github.com/kedoupi/yapi-mcp.git
@@ -91,9 +91,9 @@ node dist/cli.js test-connection
 ```json
 {
   "mcpServers": {
-    "yapi-mcp-enhanced": {
+    "@kedoupi/yapi-mcp": {
       "command": "npx",
-      "args": ["yapi-mcp-enhanced"],
+      "args": ["@kedoupi/yapi-mcp"],
       "env": {
         "YAPI_BASE_URL": "https://your-yapi-domain.com",
         "YAPI_PROJECT_TOKEN": "your-project-token",
@@ -117,9 +117,9 @@ node dist/cli.js test-connection
 
 ```json
 {
-  "name": "yapi-mcp-enhanced",
+  "name": "@kedoupi/yapi-mcp",
   "command": "npx",
-  "args": ["yapi-mcp-enhanced"],
+  "args": ["@kedoupi/yapi-mcp"],
   "env": {
     "YAPI_BASE_URL": "https://your-yapi-domain.com",
     "YAPI_PROJECT_TOKEN": "your-project-token"
@@ -135,9 +135,9 @@ node dist/cli.js test-connection
 {
   "mcpServers": [
     {
-      "name": "yapi-mcp-enhanced",
+      "name": "@kedoupi/yapi-mcp",
       "command": "npx",
-      "args": ["yapi-mcp-enhanced"],
+      "args": ["@kedoupi/yapi-mcp"],
       "env": {
         "YAPI_BASE_URL": "https://your-yapi-domain.com",
         "YAPI_PROJECT_TOKEN": "your-project-token"
@@ -156,7 +156,7 @@ node dist/cli.js test-connection
   "mcp_servers": {
     "yapi": {
       "command": "npx",
-      "args": ["yapi-mcp-enhanced"],
+      "args": ["@kedoupi/yapi-mcp"],
       "env": {
         "YAPI_BASE_URL": "https://your-yapi-domain.com",
         "YAPI_PROJECT_TOKEN": "your-project-token"
