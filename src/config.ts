@@ -3,18 +3,23 @@ import { YApiConfig } from './types/index.js';
 export function loadConfig(): YApiConfig {
   const baseUrl = process.env.YAPI_BASE_URL;
   const projectToken = process.env.YAPI_PROJECT_TOKEN;
+  const username = process.env.YAPI_USERNAME;
+  const password = process.env.YAPI_PASSWORD;
 
   if (!baseUrl) {
     throw new Error('YAPI_BASE_URL environment variable is required');
   }
 
-  if (!projectToken) {
-    throw new Error('YAPI_PROJECT_TOKEN environment variable is required');
+  // 要么提供projectToken，要么提供username+password
+  if (!projectToken && (!username || !password)) {
+    throw new Error('Either YAPI_PROJECT_TOKEN or both YAPI_USERNAME and YAPI_PASSWORD must be provided');
   }
 
   return {
     baseUrl: baseUrl.replace(/\/$/, ''), // Remove trailing slash
     projectToken,
+    username,
+    password,
     logLevel: (process.env.LOG_LEVEL as any) || 'info',
     cacheTtl: process.env.CACHE_TTL ? parseInt(process.env.CACHE_TTL) : 300,
   };
@@ -25,8 +30,9 @@ export function validateConfig(config: YApiConfig): void {
     throw new Error('Base URL is required');
   }
 
-  if (!config.projectToken) {
-    throw new Error('Project token is required');
+  // 验证认证方式
+  if (!config.projectToken && (!config.username || !config.password)) {
+    throw new Error('Either project token or username/password is required');
   }
 
   if (!config.baseUrl.startsWith('http')) {

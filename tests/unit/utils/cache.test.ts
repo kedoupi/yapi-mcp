@@ -151,5 +151,121 @@ describe('SimpleCache', () => {
       cache.set('object-key', obj);
       expect(cache.get('object-key')).toEqual(obj);
     });
+
+    it('should handle empty string keys', () => {
+      cache.set('', 'empty-key-value');
+      expect(cache.get('')).toBe('empty-key-value');
+    });
+
+    it('should handle very long keys', () => {
+      const longKey = 'a'.repeat(1000);
+      cache.set(longKey, 'long-key-value');
+      expect(cache.get(longKey)).toBe('long-key-value');
+    });
+
+    it('should handle special characters in keys', () => {
+      const specialKey = '!@#$%^&*()_+{}|:"<>?[]\\;\',./ 中文キー';
+      cache.set(specialKey, 'special-value');
+      expect(cache.get(specialKey)).toBe('special-value');
+    });
+  });
+
+  describe('concurrent operations', () => {
+    it('should handle concurrent set/get operations', async () => {
+      const promises = [];
+      const cache = new SimpleCache<number>(5);
+
+      // Simulate concurrent writes
+      for (let i = 0; i < 100; i++) {
+        promises.push(
+          new Promise<void>((resolve) => {
+            setTimeout(() => {
+              cache.set(`key-${i}`, i);
+              resolve();
+            }, Math.random() * 10);
+          })
+        );
+      }
+
+      await Promise.all(promises);
+
+      // Verify all values are set
+      for (let i = 0; i < 100; i++) {
+        expect(cache.get(`key-${i}`)).toBe(i);
+      }
+    });
+
+    it('should handle rapid set operations on same key', () => {
+      for (let i = 0; i < 1000; i++) {
+        cache.set('rapid-key', `value-${i}`);
+      }
+      expect(cache.get('rapid-key')).toBe('value-999');
+    });
+
+    it('should handle concurrent cleanup operations', async () => {
+      const cache = new SimpleCache<string>(0.1); // Very short TTL
+      
+      // Set some values
+      for (let i = 0; i < 10; i++) {
+        cache.set(`key-${i}`, `value-${i}`);
+      }
+
+      // Wait for expiration
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Run multiple cleanups concurrently
+      const cleanupPromises = Array(5).fill(0).map(() => 
+        new Promise<void>(resolve => {
+          cache.cleanup();
+          resolve();
+        })
+      );
+
+      await Promise.all(cleanupPromises);
+
+      // Verify cache is cleaned
+      for (let i = 0; i < 10; i++) {
+        expect(cache.has(`key-${i}`)).toBe(false);
+      }
+    });
+  });
+
+  describe('memory usage considerations', () => {
+    it('should handle large number of entries', () => {
+      const cache = new SimpleCache<string>(10);
+      const entryCount = 10000;
+
+      // Add many entries
+      for (let i = 0; i < entryCount; i++) {
+        cache.set(`key-${i}`, `value-${i}`);
+      }
+
+      // Verify random samples
+      for (let i = 0; i < 100; i++) {
+        const randomKey = Math.floor(Math.random() * entryCount);
+        expect(cache.get(`key-${randomKey}`)).toBe(`value-${randomKey}`);
+      }
+    });
+
+    it('should handle cache operations after expiration without automatic cleanup', async () => {
+      const cache = new SimpleCache<string>(0.1); // 100ms TTL
+      
+      // Fill cache with data
+      for (let i = 0; i < 100; i++) {
+        cache.set(`key-${i}`, `value-${i}`);
+      }
+
+      // Wait for expiration but don't cleanup
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Verify expired items return null but are still in memory until accessed
+      expect(cache.get('key-0')).toBeNull();
+      expect(cache.get('key-50')).toBeNull();
+      expect(cache.get('key-99')).toBeNull();
+
+      // Add new items after expiration
+      cache.set('new-key', 'new-value');
+      expect(cache.get('new-key')).toBe('new-value');
+    });
   });
 });

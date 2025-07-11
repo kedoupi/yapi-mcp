@@ -35,6 +35,8 @@ describe('config', () => {
     it('should use default values for optional config', () => {
       process.env.YAPI_BASE_URL = 'https://test.example.com';
       process.env.YAPI_PROJECT_TOKEN = 'test-token';
+      delete process.env.LOG_LEVEL;
+      delete process.env.CACHE_TTL;
 
       const config = loadConfig();
 

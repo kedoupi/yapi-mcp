@@ -246,6 +246,113 @@ export class YApiMcpServer {
           },
         },
         {
+          name: 'yapi_delete_interface',
+          description: 'Delete an API interface by ID',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              interface_id: {
+                type: 'number',
+                description: 'Interface ID to delete',
+              },
+            },
+            required: ['interface_id'],
+          },
+        },
+        {
+          name: 'yapi_create_category',
+          description: 'Create a new API category',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Category name',
+              },
+              project_id: {
+                type: 'number',
+                description: 'Project ID',
+              },
+              desc: {
+                type: 'string',
+                description: 'Category description',
+              },
+            },
+            required: ['name', 'project_id'],
+          },
+        },
+        {
+          name: 'yapi_get_interface_menu',
+          description: 'Get interface menu list with category structure',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_id: {
+                type: 'number',
+                description: 'Project ID',
+              },
+            },
+            required: ['project_id'],
+          },
+        },
+        {
+          name: 'yapi_list_category_interfaces',
+          description: 'Get interfaces within a specific category',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              catid: {
+                type: 'number',
+                description: 'Category ID',
+              },
+              page: {
+                type: 'number',
+                description: 'Page number (default: 1)',
+                minimum: 1,
+              },
+              limit: {
+                type: 'number',
+                description: 'Number of results per page (default: 20)',
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+            required: ['catid'],
+          },
+        },
+        {
+          name: 'yapi_import_data',
+          description: 'Import interface data from external sources',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              type: {
+                type: 'string',
+                enum: ['swagger', 'postman', 'har', 'json'],
+                description: 'Import data type',
+              },
+              project_id: {
+                type: 'number',
+                description: 'Target project ID',
+              },
+              catid: {
+                type: 'number',
+                description: 'Target category ID',
+              },
+              sync_mode: {
+                type: 'string',
+                enum: ['normal', 'good', 'merge'],
+                description: 'Sync mode: normal (normal), good (intelligent merge), merge (completely overwrite)',
+              },
+              data_source: {
+                type: 'string',
+                description: 'Import data source (JSON string or URL)',
+              },
+            },
+            required: ['type', 'project_id', 'catid', 'data_source'],
+          },
+        },
+        {
           name: 'yapi_clear_cache',
           description: 'Clear the internal cache to force fresh data retrieval',
           inputSchema: {
@@ -335,6 +442,85 @@ export class YApiMcpServer {
                 {
                   type: 'text',
                   text: `Interface updated successfully: ${JSON.stringify(result, null, 2)}`,
+                },
+              ],
+            };
+          }
+
+          case 'yapi_delete_interface': {
+            const { interface_id } = args as { interface_id: number };
+            const success = await this.yapiClient.deleteInterface(interface_id);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: success 
+                    ? `Interface ${interface_id} deleted successfully`
+                    : `Failed to delete interface ${interface_id}`,
+                },
+              ],
+            };
+          }
+
+          case 'yapi_create_category': {
+            const { name, project_id, desc } = args as { name: string; project_id: number; desc?: string };
+            const result = await this.yapiClient.createCategory({ name, project_id, desc });
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Category created successfully: ${JSON.stringify(result, null, 2)}`,
+                },
+              ],
+            };
+          }
+
+          case 'yapi_get_interface_menu': {
+            const { project_id } = args as { project_id: number };
+            const menu = await this.yapiClient.getInterfaceMenu(project_id);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(menu, null, 2),
+                },
+              ],
+            };
+          }
+
+          case 'yapi_list_category_interfaces': {
+            const { catid, page, limit } = args as { catid: number; page?: number; limit?: number };
+            const result = await this.yapiClient.listCategoryInterfaces(catid, page, limit);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(result, null, 2),
+                },
+              ],
+            };
+          }
+
+          case 'yapi_import_data': {
+            const { type, project_id, catid, sync_mode, data_source } = args as { 
+              type: string; 
+              project_id: number; 
+              catid: number; 
+              sync_mode?: string; 
+              data_source: string 
+            };
+            const result = await this.yapiClient.importData({
+              type,
+              project_id,
+              catid,
+              sync_mode: sync_mode || 'normal',
+              data_source
+            });
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Data imported successfully: ${JSON.stringify(result, null, 2)}`,
                 },
               ],
             };

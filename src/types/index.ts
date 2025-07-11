@@ -1,9 +1,12 @@
 export interface YApiConfig {
   baseUrl: string;
-  projectToken: string;
+  projectToken?: string;
+  username?: string;
+  password?: string;
   projectId?: number;
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
   cacheTtl?: number;
+  sessionCookie?: string; // 用于存储登录后的session
 }
 
 export interface YApiProject {

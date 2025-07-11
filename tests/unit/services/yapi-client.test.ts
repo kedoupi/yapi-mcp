@@ -280,17 +280,59 @@ describe('YApiClient', () => {
     });
 
     it('should clear related cache after creation', async () => {
+      // Setup cache with projects and categories
       nock(baseUrl)
-        .post('/api/interface/add')
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: [{ _id: 123, name: 'Test Project' }],
+        });
+
+      nock(baseUrl)
+        .get('/api/interface/getCatMenu')
+        .query({ token: 'test-token', project_id: 123 })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: [{ _id: 1, name: 'Test Category', project_id: 123 }],
+        });
+
+      // Prime the cache
+      await yapiClient.getProjects();
+      await yapiClient.getCategories(123);
+
+      // Mock the creation endpoint
+      nock(baseUrl)
+        .post('/api/interface/add', {
+          token: 'test-token',
+          ...createParams,
+        })
         .reply(200, {
           errcode: 0,
           errmsg: 'success',
           data: mockCreatedInterface,
         });
 
-      // This should work without throwing and clear cache
-      await yapiClient.createInterface(createParams);
-      expect(true).toBe(true); // Test passes if no error thrown
+      // Create interface should clear cache
+      const result = await yapiClient.createInterface(createParams);
+
+      // Verify the interface was created
+      expect(result).toEqual(mockCreatedInterface);
+
+      // Verify cache was cleared by checking that subsequent calls make new HTTP requests
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: [{ _id: 123, name: 'Test Project Updated' }],
+        });
+
+      const projectsAfterCreate = await yapiClient.getProjects();
+      expect(projectsAfterCreate[0].name).toBe('Test Project Updated');
     });
   });
 
@@ -359,6 +401,224 @@ describe('YApiClient', () => {
         .reply(500, 'Internal Server Error');
 
       await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+
+    it('should handle invalid JSON responses', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, 'not-json');
+
+      await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+
+    it('should handle malformed API responses', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, { errcode: 'invalid' }); // errcode should be number
+
+      await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+
+    it('should handle missing errcode in response', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, { data: [] }); // Missing errcode
+
+      await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+
+    it('should handle rate limiting responses', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(429, { errcode: 42901, errmsg: 'Rate limit exceeded' });
+
+      await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+
+    it('should handle CORS errors', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .replyWithError({
+          code: 'ECONNREFUSED',
+          message: 'connect ECONNREFUSED 127.0.0.1:80'
+        });
+
+      await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+
+    it('should handle DNS resolution errors', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .replyWithError({
+          code: 'ENOTFOUND',
+          message: 'getaddrinfo ENOTFOUND invalid-host.com'
+        });
+
+      await expect(yapiClient.getProjects()).rejects.toThrow('YApi API request failed');
+    });
+  });
+
+  describe('concurrent requests', () => {
+    it('should handle concurrent identical requests with caching', async () => {
+      const mockProjects = [
+        { _id: 1, name: 'Concurrent Test Project', basepath: '/concurrent' },
+      ];
+
+      // Only one HTTP request should be made despite multiple concurrent calls
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: mockProjects,
+        });
+
+      // Make 5 concurrent requests
+      const promises = Array(5).fill(0).map(() => yapiClient.getProjects());
+      const results = await Promise.all(promises);
+
+      // All should return the same data
+      results.forEach(result => {
+        expect(result).toEqual(mockProjects);
+      });
+
+      // Verify only one HTTP request was made
+      expect(nock.isDone()).toBe(true);
+    });
+
+    it('should handle concurrent requests to different endpoints', async () => {
+      const mockProjects = [{ _id: 1, name: 'Project 1' }];
+      const mockCategories = [{ _id: 1, name: 'Category 1', project_id: 1 }];
+      const mockInterface = { _id: 1, title: 'Interface 1' };
+
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, { errcode: 0, errmsg: 'success', data: mockProjects });
+
+      nock(baseUrl)
+        .get('/api/interface/getCatMenu')
+        .query({ token: 'test-token', project_id: 1 })
+        .reply(200, { errcode: 0, errmsg: 'success', data: mockCategories });
+
+      nock(baseUrl)
+        .get('/api/interface/get')
+        .query({ token: 'test-token', id: 1 })
+        .reply(200, { errcode: 0, errmsg: 'success', data: mockInterface });
+
+      const [projects, categories, interfaceData] = await Promise.all([
+        yapiClient.getProjects(),
+        yapiClient.getCategories(1),
+        yapiClient.getInterface(1),
+      ]);
+
+      expect(projects).toEqual(mockProjects);
+      expect(categories).toEqual(mockCategories);
+      expect(interfaceData).toEqual(mockInterface);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle empty response data', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: [],
+        });
+
+      const result = await yapiClient.getProjects();
+      expect(result).toEqual([]);
+    });
+
+    it('should handle null response data', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: null,
+        });
+
+      const result = await yapiClient.getProjects();
+      expect(result).toBeNull();
+    });
+
+    it('should handle very large response data', async () => {
+      const largeProjectList = Array(1000).fill(0).map((_, index) => ({
+        _id: index,
+        name: `Project ${index}`,
+        basepath: `/api/v${index}`,
+        desc: `Large project ${index}`,
+        env: [],
+      }));
+
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: largeProjectList,
+        });
+
+      const result = await yapiClient.getProjects();
+      expect(result).toHaveLength(1000);
+      expect(result[999].name).toBe('Project 999');
+    });
+
+    it('should handle special characters in project data', async () => {
+      const specialProject = {
+        _id: 1,
+        name: 'Test "Project" with 特殊字符 & symbols!',
+        basepath: '/api/特殊/路径',
+        desc: 'Project with emoji 🚀 and unicode',
+        env: [{ name: 'test', domain: 'https://测试.example.com' }],
+      };
+
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: [specialProject],
+        });
+
+      const result = await yapiClient.getProjects();
+      expect(result[0]).toEqual(specialProject);
+    });
+
+    it('should handle API response with unexpected extra fields', async () => {
+      nock(baseUrl)
+        .get('/api/project/list')
+        .query({ token: 'test-token' })
+        .reply(200, {
+          errcode: 0,
+          errmsg: 'success',
+          data: [{
+            _id: 1,
+            name: 'Test Project',
+            basepath: '/api',
+            unexpected_field: 'should not break parsing',
+            nested: { extra: 'data' },
+          }],
+          extra_response_field: 'ignored',
+        });
+
+      const result = await yapiClient.getProjects();
+      expect(result[0]._id).toBe(1);
+      expect(result[0].name).toBe('Test Project');
     });
   });
 });
